@@ -1,19 +1,17 @@
-import express, { json } from 'express';
-
+const express = require("express");
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware to parse JSON bodies (will be useful in later steps)
-app.use(json());
+app.use(express.json());
 
-// Hello World route
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello, World!' });
-});
+const questionsRouter = require('./routes/questions.js');
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.use('/api/questions', questionsRouter);
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
 });
 
 // Start the server
