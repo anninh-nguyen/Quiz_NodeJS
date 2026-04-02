@@ -9,6 +9,7 @@ router.get("/", (req, res) => {
 });
 
 // List questions filtered by keyword
+// GET /api/questions/ , /api/questions?keyword=http
 router.get("/", (req, res) => {  
   const {keyword} = req.query;
   if (!keyword) { // return all when keywork is empty
@@ -18,18 +19,17 @@ router.get("/", (req, res) => {
   const filteredQuestions = questions.filter(q => 
     questions.keywords.includes(keyword.toLowerCase()));
 
-    if (!question) {
+    if (!filteredQuestions) {
       return res.status(404).json({message: "Question not found"});
     }
   
     res.json(filteredQuestions);
 });
 
-
 // Show a specific question by ID
-router.get("/:qId", (req, res) => {
-  const questionId = Number (req.params.qId);
-  const question = this.questions.find(q => q.id === questionId);
+router.get("/:qid", (req, res) => {
+  const questionId = Number (req.params.qid);
+  const question = questions.find(q => q.id === questionId);
 
   if (!question) {
     return res.status(404).json({message: "Question not found"});
@@ -42,14 +42,15 @@ router.get("/:qId", (req, res) => {
 router.post("/", (req, res) => {
   const {question, date, answers, keywords} = req.body;
 
-  if (!question ||  !date || !answers || !keywords) {
-    return res.status(404).json({message: "Required data is mussing"});
+  if (!question ||  !date || !answers) {
+    return res.status(404).json({message: "Required data is missing"});
   }
 
   const currentId = Math.max(...questions.map(q=> q.id), 0);
   const newQuestion = {
     id : questions.length ? currentId + 1 : 1,
-    date, question, answers, keyword : Array.isArray(keywords) ? keywords : []
+    date, question, answers, 
+    keyword : Array.isArray(keywords) ? keywords : []
   };
 
   questions.push(newQuestion);
@@ -58,7 +59,7 @@ router.post("/", (req, res) => {
 
 // delete a question
 router.post("/", (req, res) => {
-  const {questionId} = req.questionId;
+  const questionId = Number (req.params.qid);
   if (!questionId) {
     res.status(401).json({message : "Missing question ID"});
   }
@@ -71,7 +72,7 @@ router.post("/", (req, res) => {
 
   res.json({
     message : "Question was deleted",
-    post : questionToDelete
+    post : questionToDelete[0]
   })
 });
 
