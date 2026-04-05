@@ -1,49 +1,49 @@
 const express = require("express");
 const router = express.Router();
-
 const questions = require('../data/questions.js');
 
-// List all questions
-router.get("/", (req, res) => {
-  res.json(questions);
-});
-
 // List questions filtered by keyword
-// GET /api/questions/ , /api/questions?keyword=http
-router.get("/", (req, res) => {  
-  const {keyword} = req.query;
-  if (!keyword) { // return all when keywork is empty
-    return res.json(questions);
-  }
-  
-  const filteredQuestions = questions.filter(q => 
-    questions.keywords.includes(keyword.toLowerCase()));
+// GET /api/questions?keyword=http
+router.get("/", (req, res) => {
+  if ('keyword' in req.query) {
+    const {keyword} = req.query;
+    if (!keyword) { 
+      return res.json({message : "GET: Keyword is missing which is required"});
+    }
 
-    if (!filteredQuestions) {
-      return res.status(404).json({message: "Question not found"});
+    const filteredQuestions = questions.filter(q => q.keywords.includes(keyword.toLowerCase()));
+    if (filteredQuestions.length == 0) {
+      return res.json({message: "GET: Found no question match with keyword"});
     }
   
-    res.json(filteredQuestions);
+    return res.json(filteredQuestions);
+  }
+  else {
+    // List all questions
+    return res.json(questions);
+  }
 });
 
 // Show a specific question by ID
-router.get("/:qid", (req, res) => {
-  const questionId = Number (req.params.qid);
+// GET /api/questions/1
+router.get("/:questionId", (req, res) => {
+  const questionId = Number (req.params.questionId);
   const question = questions.find(q => q.id === questionId);
 
   if (!question) {
-    return res.status(404).json({message: "Question not found"});
+    return res.status(404).json({message: "GET: Question not found"});
   }
 
-  res.json(question);
+  return res.json(question);
 });
 
 // create new question
+// POST
 router.post("/", (req, res) => {
   const {question, date, answers, keywords} = req.body;
 
-  if (!question ||  !date || !answers) {
-    return res.status(404).json({message: "Required data is missing"});
+  if (!question || !date || !answers) {
+    return res.status(404).json({message: "POST: Required data is missing"});
   }
 
   const currentId = Math.max(...questions.map(q=> q.id), 0);
@@ -54,26 +54,43 @@ router.post("/", (req, res) => {
   };
 
   questions.push(newQuestion);
-  res.status(201).json (newQuestion);
+  return res.status(201).json(newQuestion);
+});
+
+// Edit a question
+// PUT
+router.put ("/:questionId", (req, res) => {
+  const questionId = Number(req.params.questionId);
+  const {question, date, answers, keywords} = req.body;
+
+  if (!question || !date || answers) {
+    return res.status(404).json({message: "PUT: Required data is missing"});
+  }
+
+  const editQuestion = questions.find(q => q.id === questionId);
+  editQuestion.question = question;
+  editQuestion.date = date;
+  editQuestion.answers = answers;
+  editQuestion.keywords = Array.isArray(keywords) ? keywords : [];
+
+  return res.status(201).json(editQuestion);
 });
 
 // delete a question
-router.post("/", (req, res) => {
+// DELETE
+router.delete("/", (req, res) => {
   const questionId = Number (req.params.qid);
   if (!questionId) {
-    res.status(401).json({message : "Missing question ID"});
+    res.status(401).json({message : "DELETE: Missing question ID"});
   }
 
   if (questionId === -1) {
-    req.status(401).json({message : "Invalid question ID"});
+    req.status(401).json({message : "DELETE: Invalid question ID"});
   }
 
-  const questionToDelete = questions.splice (questionId, 1);
+  const questionToDelete = questions.splice(questionId, 1);
 
-  res.json({
-    message : "Question was deleted",
-    post : questionToDelete[0]
-  })
+  return res.status(201).json({message : "Question was deleted", post : questionToDelete[0]})
 });
 
 module.exports = router;

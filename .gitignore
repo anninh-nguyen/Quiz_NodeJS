@@ -5,3 +5,4 @@ postman
 .env
 .DS_Store
 src/test
+.vscode
