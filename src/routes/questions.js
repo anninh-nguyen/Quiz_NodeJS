@@ -40,9 +40,9 @@ router.get("/:questionId", (req, res) => {
 // create new question
 // POST
 router.post("/", (req, res) => {
-  const {question, date, answers, keywords} = req.body;
+  const {question, answers, date, keywords} = req.body;
 
-  if (!question || !date || !answers) {
+  if (!question || !answers || !date) {
     return res.status(404).json({message: "POST: Required data is missing"});
   }
 
@@ -63,7 +63,7 @@ router.put ("/:questionId", (req, res) => {
   const questionId = Number(req.params.questionId);
   const {question, date, answers, keywords} = req.body;
 
-  if (!question || !date || answers) {
+  if (!question || !date || !answers) {
     return res.status(404).json({message: "PUT: Required data is missing"});
   }
 
@@ -78,8 +78,8 @@ router.put ("/:questionId", (req, res) => {
 
 // delete a question
 // DELETE
-router.delete("/", (req, res) => {
-  const questionId = Number (req.params.qid);
+router.delete("/:questionId", (req, res) => {
+  const questionId = Number (req.params.questionId);
   if (!questionId) {
     res.status(401).json({message : "DELETE: Missing question ID"});
   }
@@ -88,9 +88,14 @@ router.delete("/", (req, res) => {
     req.status(401).json({message : "DELETE: Invalid question ID"});
   }
 
-  const questionToDelete = questions.splice(questionId, 1);
+  const questionToDelete = questions.find(q => q.id === questionId);
+  if (!questionToDelete) {
+    return res.json("Question to delete is not existed");
+  }
 
-  return res.status(201).json({message : "Question was deleted", post : questionToDelete[0]})
+  const questionDeleted = questions.splice(questionId, 1);
+
+  return res.status(201).json({message : "Question was deleted", post : questionDeleted[0]})
 });
 
 module.exports = router;
