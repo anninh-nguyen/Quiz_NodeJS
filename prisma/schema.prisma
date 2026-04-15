@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  quizAttempts  QuizAttempt[]
+}
+
+model Quiz {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  userId      Int
+  questions   Question[]
+  quizAttempts QuizAttempt[]
+}
+
+model Question {
+  id       Int      @id @default(autoincrement())
+  text     String
+  quizId   Int
+  quiz     Quiz     @relation(fields: [quizId], references: [id])
+  options  Option[]
+  quizResults QuizResult[]
+}
+
+model Option {
+  id         Int      @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+  quizResults QuizResult[]
+}
+
+model QuizAttempt {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  quizId    Int
+  score     Int
+  user      User     @relation(fields: [userId], references: [id])
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizResults QuizResult[]
+}
+
+model QuizResult {
+  id            Int      @id @default(autoincrement())
+  quizAttemptId Int
+  questionId    Int
+  selectedOptionId Int
+  quizAttempt   QuizAttempt @relation(fields: [quizAttemptId], references: [id])
+  question      Question    @relation(fields: [questionId], references: [id])
+  selectedOption Option     @relation(fields: [selectedOptionId], references: [id])
+}

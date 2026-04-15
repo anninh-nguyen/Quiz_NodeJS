@@ -1,20 +1,24 @@
 const express = require("express");
+const prisma = require("../lib/prisma");
 const router = express.Router();
-const questions = require('../data/questions.js');
 
 // List questions filtered by keyword
 // GET /api/questions?keyword=http
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   if ('keyword' in req.query) {
     const {keyword} = req.query;
     if (!keyword) { 
       return res.json({message : "GET: Keyword is missing which is required"});
     }
 
-    const filteredQuestions = questions.filter(q => q.keywords.includes(keyword.toLowerCase()));
-    if (filteredQuestions.length == 0) {
-      return res.json({message: "GET: Found no question match with keyword"});
-    }
+    const where = keyword 
+      ? {keywords : {some : {name: keyword}}}
+      : {};
+    const filteredQuestions = await prisma.quiz.findMany({
+      where,
+      include: {keywords: true},
+      orderBy: {id: "asc"}
+    });
   
     return res.json(filteredQuestions);
   }
