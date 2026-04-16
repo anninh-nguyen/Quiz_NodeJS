@@ -2,6 +2,13 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const router = express.Router();
 
+function formatQuestion(question) {
+  return {
+    question,
+    keywords: question.keywords.map((k) => k.name),
+  };
+}
+
 // List questions filtered by keyword
 // GET /api/questions?keyword=http
 router.get("/", async (req, res) => {
@@ -20,7 +27,7 @@ router.get("/", async (req, res) => {
       orderBy: {id: "asc"}
     });
   
-    return res.json(filteredQuestions);
+    return res.json(filteredQuestions.map(formatQuestion));
   }
   else {
     // List all questions

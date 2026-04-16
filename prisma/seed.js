@@ -1,5 +1,3 @@
-// const { PrismaClient } = require('../src/prisma');
-// import { PrismaClient } from '@prisma/client';
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -7,11 +5,14 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
+  await prisma.user.deleteMany({});
+  await prisma.quiz.deleteMany({});
+
   // Create sample users
   const user1 = await prisma.user.create({
     data: {
       email: 'john.doe@example.com',
-      password: '$2b$10$hashedpassword1', // In real app, use proper hashing
+      password: '$2b$10$hashedpassword1',
     },
   });
 
@@ -56,6 +57,7 @@ async function main() {
     data: {
       text: 'What is the correct way to declare a variable in JavaScript?',
       quizId: quiz1.id,
+      keywords: ["varialbe", "Javascript", "declare"]
     },
   });
 
@@ -63,6 +65,7 @@ async function main() {
     data: {
       text: 'Which of the following is NOT a JavaScript data type?',
       quizId: quiz1.id,
+      keywords: ["type", "Javascript", "declare"]
     },
   });
 
@@ -70,6 +73,7 @@ async function main() {
     data: {
       text: 'What does the === operator do in JavaScript?',
       quizId: quiz1.id,
+      keywords: ["type", "Javascript", "operator"]
     },
   });
 
@@ -108,6 +112,7 @@ async function main() {
     data: {
       text: 'What is Node.js?',
       quizId: quiz2.id,
+      keywords: ["Node", "Node.js", "NodeJS"]
     },
   });
 
@@ -115,6 +120,7 @@ async function main() {
     data: {
       text: 'Which module is used to create a web server in Node.js?',
       quizId: quiz2.id,
+      keywords: ["Node", "web", "server"]
     },
   });
 
@@ -143,6 +149,7 @@ async function main() {
     data: {
       text: 'What does HTML stand for?',
       quizId: quiz3.id,
+      keywords: ["html"]
     },
   });
 
@@ -150,6 +157,7 @@ async function main() {
     data: {
       text: 'Which HTTP method is used to retrieve data from a server?',
       quizId: quiz3.id,
+      keywords: ["http", "method", "get"]
     },
   });
 
