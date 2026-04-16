@@ -5,8 +5,23 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  await prisma.user.deleteMany({});
+  // clean database
+  await prisma.quizResult.deleteMany({});
+  await prisma.quizAttempt.deleteMany({});
+  await prisma.option.deleteMany({});
+  await prisma.question.deleteMany({});
+  await prisma.keyword.deleteMany({});
   await prisma.quiz.deleteMany({});
+  await prisma.user.deleteMany({});
+
+  // Reset auto-increment indexes to ensure all Postman test will get correct input
+  await prisma.$executeRawUnsafe('ALTER TABLE user AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quiz AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE question AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE option AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE keyword AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quizAttempt AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quizResult AUTO_INCREMENT = 1');
 
   // Create sample users
   const user1 = await prisma.user.create({
@@ -52,12 +67,45 @@ async function main() {
 
   console.log('Created quizzes:', quiz1.title, quiz2.title, quiz3.title);
 
+  const keywordNames = [
+    'variable',
+    'Javascript',
+    'declare',
+    'type',
+    'operator',
+    'Node',
+    'Node.js',
+    'NodeJS',
+    'web',
+    'server',
+    'html',
+    'http',
+    'method',
+    'get',
+    'router',
+    'listen',
+    'express'
+  ];
+
+  await prisma.keyword.createMany({
+    data: keywordNames.map((name) => ({ name })),
+    skipDuplicates: true,
+  });
+
+  console.log('Created keywords:', keywordNames.join(', '));
+
   // Create questions for quiz 1
   const question1 = await prisma.question.create({
     data: {
       text: 'What is the correct way to declare a variable in JavaScript?',
       quizId: quiz1.id,
-      keywords: ["varialbe", "Javascript", "declare"]
+      keywords: {
+        connect: [
+          { name: 'variable' },
+          { name: 'Javascript' },
+          { name: 'declare' },
+        ],
+      },
     },
   });
 
@@ -65,7 +113,13 @@ async function main() {
     data: {
       text: 'Which of the following is NOT a JavaScript data type?',
       quizId: quiz1.id,
-      keywords: ["type", "Javascript", "declare"]
+      keywords: {
+        connect: [
+          { name: 'type' },
+          { name: 'Javascript' },
+          { name: 'declare' },
+        ],
+      },
     },
   });
 
@@ -73,7 +127,13 @@ async function main() {
     data: {
       text: 'What does the === operator do in JavaScript?',
       quizId: quiz1.id,
-      keywords: ["type", "Javascript", "operator"]
+      keywords: {
+        connect: [
+          { name: 'type' },
+          { name: 'Javascript' },
+          { name: 'operator' },
+        ],
+      },
     },
   });
 
@@ -112,7 +172,13 @@ async function main() {
     data: {
       text: 'What is Node.js?',
       quizId: quiz2.id,
-      keywords: ["Node", "Node.js", "NodeJS"]
+      keywords: {
+        connect: [
+          { name: 'Node' },
+          { name: 'Node.js' },
+          { name: 'NodeJS' },
+        ],
+      },
     },
   });
 
@@ -120,7 +186,13 @@ async function main() {
     data: {
       text: 'Which module is used to create a web server in Node.js?',
       quizId: quiz2.id,
-      keywords: ["Node", "web", "server"]
+      keywords: {
+        connect: [
+          { name: 'Node' },
+          { name: 'web' },
+          { name: 'server' },
+        ],
+      },
     },
   });
 
@@ -149,7 +221,11 @@ async function main() {
     data: {
       text: 'What does HTML stand for?',
       quizId: quiz3.id,
-      keywords: ["html"]
+      keywords: {
+        connect: [
+          { name: 'html' },
+        ],
+      },
     },
   });
 
@@ -157,7 +233,13 @@ async function main() {
     data: {
       text: 'Which HTTP method is used to retrieve data from a server?',
       quizId: quiz3.id,
-      keywords: ["http", "method", "get"]
+      keywords: {
+        connect: [
+          { name: 'http' },
+          { name: 'method' },
+          { name: 'get' },
+        ],
+      },
     },
   });
 

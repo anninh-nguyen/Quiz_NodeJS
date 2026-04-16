@@ -6,4 +6,5 @@ postman
 .DS_Store
 src/test
 .vscode
-/src/generated/prisma
+/src/generated/prismasodprisma
+.vscode

@@ -18,7 +18,9 @@ model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   password String
+  quizzes  Quiz[] 
   quizAttempts  QuizAttempt[]
+  @@map("users")
 }
 
 model Quiz {
@@ -28,16 +30,26 @@ model Quiz {
   userId      Int
   questions   Question[]
   quizAttempts QuizAttempt[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@map("quizzes")
 }
 
 model Question {
   id       Int      @id @default(autoincrement())
   text     String
   quizId   Int
-  keywords Json?
+  keywords Keyword[]
   quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   options  Option[]
   quizResults QuizResult[]
+  @@map("questions")
+}
+
+model Keyword {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(20)
+  questions  Question[]
+  @@map("keywords")
 }
 
 model Option {
@@ -47,6 +59,7 @@ model Option {
   questionId Int
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quizResults QuizResult[]
+  @@map("options")
 }
 
 model QuizAttempt {
@@ -57,6 +70,7 @@ model QuizAttempt {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quizResults QuizResult[]
+  @@map("quizAttempts")
 }
 
 model QuizResult {
@@ -67,4 +81,5 @@ model QuizResult {
   quizAttempt   QuizAttempt @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   selectedOption Option     @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@map("quizResults")
 }
