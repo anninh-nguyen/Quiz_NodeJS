@@ -15,13 +15,13 @@ async function main() {
   await prisma.user.deleteMany({});
 
   // Reset auto-increment indexes to ensure all Postman test will get correct input
-  await prisma.$executeRawUnsafe('ALTER TABLE user AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE quiz AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE question AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE option AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE keyword AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE quizAttempt AUTO_INCREMENT = 1');
-  await prisma.$executeRawUnsafe('ALTER TABLE quizResult AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE users AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quizzes AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE questions AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE options AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE keywords AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quizAttempts AUTO_INCREMENT = 1');
+  await prisma.$executeRawUnsafe('ALTER TABLE quizResults AUTO_INCREMENT = 1');
 
   // Create sample users
   const user1 = await prisma.user.create({
