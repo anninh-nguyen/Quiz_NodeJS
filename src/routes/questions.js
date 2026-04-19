@@ -52,10 +52,11 @@ router.get("/:questionId", async(req, res) => {
 // create new question
 // POST
 router.post("/", async (req, res) => {
+
   const {text, options, quizId, keywords} = req.body;
 
   if (!text || !options || !quizId) {
-    return res.status(404).json({message: "POST: Required data is missing"});
+    return res.status(400).json({message: "POST: Required data is missing"});
   }
 
   const newQuestion = await prisma.question.create({
@@ -63,7 +64,7 @@ router.post("/", async (req, res) => {
       text,
       options: {create: options},
       quiz: {connect: {id: Number(quizId)}},
-      keywords: keywords ? {connect: keywords.map(kw => ({id: kw}))} : undefined,
+      keywords: keywords ? {connect: keywords.map(kw => ({name: kw}))} : undefined,
     },
     include: {keywords: true, options: true}
   });
@@ -73,21 +74,24 @@ router.post("/", async (req, res) => {
 
 // Edit a question
 // PUT
-router.put ("/:questionId", async (req, res) => {
+router.put("/:questionId", async (req, res) => {
   const questionId = Number(req.params.questionId);
-  const {text, options, quizId, keywords} = req.body;
+  const {text, options, keywords} = req.body;
 
-  if (!text || !options || quizId) {
-    return res.status(404).json({message: "PUT: Required data is missing"});
+  if (!questionId){
+    return res.json({message: "PUT: Question Id is missing"});
+  }
+
+  if (!text || !options) {
+    return res.status(400).json({message: "PUT: Required data is missing"});
   }
 
   const updatedQuestion = await prisma.question.update({
     where: {id: questionId},
     data: {
-      text,
-      options: {connectOrCreate: options},
-      quiz: {connect: {id: Number(quizId)}},
-      keywords: keywords ? {connect: keywords.map(kw => ({id: kw}))} : undefined,
+      text: text,
+      options: {deleteMany: {}, create: options,},
+      keywords: keywords ? {connect: keywords.map(kw => ({name: kw}))} : undefined,
     },
     include: {keywords: true, options: true}
   });
