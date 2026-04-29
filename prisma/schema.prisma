@@ -18,7 +18,9 @@ model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   password String
+  name     String?
   quizzes  Quiz[] 
+  questions Question[]
   quizAttempts  QuizAttempt[]
   @@map("users")
 }
@@ -27,10 +29,10 @@ model Quiz {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  userId      Int
+  userId      Int?
   questions   Question[]
   quizAttempts QuizAttempt[]
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   @@map("quizzes")
 }
 
@@ -38,7 +40,9 @@ model Question {
   id       Int      @id @default(autoincrement())
   text     String
   quizId   Int
+  userId   Int?
   keywords Keyword[]
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   options  Option[]
   quizResults QuizResult[]

@@ -23,18 +23,21 @@ async function main() {
   await prisma.$executeRawUnsafe('ALTER TABLE quizAttempts AUTO_INCREMENT = 1');
   await prisma.$executeRawUnsafe('ALTER TABLE quizResults AUTO_INCREMENT = 1');
 
-  // Create sample users
+  // user created quizes
   const user1 = await prisma.user.create({
     data: {
+      name: 'John Doe',
       email: 'john.doe@example.com',
-      password: '$2b$10$hashedpassword1',
+      password: '$2b$10$BZAfH2fzdJ1YA1xg.w0XtulnNBltGkVJWUHMgejHti1ETVUw69ZKG',
     },
   });
 
+  // user created questions
   const user2 = await prisma.user.create({
     data: {
+      name: 'Jane Smith',
       email: 'jane.smith@example.com',
-      password: '$2b$10$hashedpassword2',
+      password: '$2b$10$UGZgMGbEO.SID2XqdR2LB.4RqZAb2fjttEQlrDHT3Z7FFZWrpfEQ6',
     },
   });
 
@@ -53,7 +56,7 @@ async function main() {
     data: {
       title: 'Node.js Basics',
       description: 'Introduction to Node.js concepts',
-      userId: user2.id,
+      userId: user1.id,
     },
   });
 
@@ -99,6 +102,7 @@ async function main() {
     data: {
       text: 'What is the correct way to declare a variable in JavaScript?',
       quizId: quiz1.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'variable' },
@@ -113,6 +117,7 @@ async function main() {
     data: {
       text: 'Which of the following is NOT a JavaScript data type?',
       quizId: quiz1.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'type' },
@@ -127,6 +132,7 @@ async function main() {
     data: {
       text: 'What does the === operator do in JavaScript?',
       quizId: quiz1.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'type' },
@@ -172,6 +178,7 @@ async function main() {
     data: {
       text: 'What is Node.js?',
       quizId: quiz2.id,
+      userId: user2.id, 
       keywords: {
         connect: [
           { name: 'Node' },
@@ -186,6 +193,7 @@ async function main() {
     data: {
       text: 'Which module is used to create a web server in Node.js?',
       quizId: quiz2.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'Node' },
@@ -221,6 +229,7 @@ async function main() {
     data: {
       text: 'What does HTML stand for?',
       quizId: quiz3.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'html' },
@@ -233,6 +242,7 @@ async function main() {
     data: {
       text: 'Which HTTP method is used to retrieve data from a server?',
       quizId: quiz3.id,
+      userId: user2.id,
       keywords: {
         connect: [
           { name: 'http' },

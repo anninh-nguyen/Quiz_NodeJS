@@ -1,6 +1,10 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const router = express.Router();
+const authenticate = require("../middleware/auth");
+const isOwner = require("../middleware/isOwner");
+
+router.use(authenticate);
 
 // List questions filtered by keyword
 // GET /api/questions?keyword=http
@@ -34,7 +38,7 @@ router.get("/", async (req, res) => {
 
 // Show a specific question by ID
 // GET /api/questions/1
-router.get("/:questionId", async(req, res) => {
+router.get("/:questionId", isOwner, async(req, res) => {
   const questionId = Number (req.params.questionId);
   
   const question = await prisma.question.findUnique({
@@ -45,7 +49,7 @@ router.get("/:questionId", async(req, res) => {
   if (!question) {
     return res.status(404).json({message: "GET: Question not found"});
   }
-
+  
   return res.json(question);
 });
 
@@ -74,7 +78,7 @@ router.post("/", async (req, res) => {
 
 // Edit a question
 // PUT
-router.put("/:questionId", async (req, res) => {
+router.put("/:questionId", isOwner, async (req, res) => {
   const questionId = Number(req.params.questionId);
   const {text, options, keywords} = req.body;
 
@@ -101,7 +105,7 @@ router.put("/:questionId", async (req, res) => {
 
 // delete a question
 // DELETE
-router.delete("/:questionId", async (req, res) => {
+router.delete("/:questionId", isOwner, async (req, res) => {
   const questionId = Number (req.params.questionId);
   if (!questionId) {
     return res.status(401).json({message : "DELETE: Missing question ID"});
