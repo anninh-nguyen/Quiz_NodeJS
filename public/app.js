@@ -311,26 +311,36 @@ async function showQuestionForm(qId) {
       <form id="question-form" enctype="multipart/form-data">
         <div class="form-group">
           <label for="q-question">Question</label>
-          <input type="text" id="q-question" value="${question.text}" required />
+          <input type="text" id="q-question" value="${isEdit ? question.text : ""}" required />
         </div>
         <div class="form-group">
           <div class="options-list">
-            ${question.options.map((option) => `
-              <label class="option-item" for="play-answer-${option.id}"
-                name="play-answer" value="${option.id}" required style="width:95%;">
-                <input id="play-answer-${option.id}" type="radio" style="width:5%;" /> ${option.text}
-              </label>
-            `).join("")}
+            ${isEdit 
+              ? question.options.map((option) => `
+                <label class="option-item" for="play-answer-${option.id}"
+                  name="play-answer" value="${option.id}" required style="width:95%;">
+                  <input id="play-answer-${option.id}" type="radio" style="width:5%;" /> ${option.text}
+                </label>`).join("") 
+              : `
+                <input id="q-answer-1-text" type="text" placeholder="Option 1 text" style="width:90%;margin-left:0.5rem;" required />
+                <input id="q-answer-2-text" type="text" placeholder="Option 2 text" style="width:90%;margin-left:0.5rem;" required />
+                <input id="q-answer-3-text" type="text" placeholder="Option 3 text" style="width:90%;margin-left:0.5rem;" required />
+                <input id="q-answer-4-text" type="text" placeholder="Option 4 text" style="width:90%;margin-left:0.5rem;" required />
+            `}
           </div>
         </div>
         <div class="form-group">
           <label for="q-keywords">Keywords (comma-separated)</label>
-          <input type="text" id="q-keywords" value="${question.keywords ? question.keywords.map((k) => k.name).join(", ") : ""}" />
+          <input type="text" id="q-keywords" value="
+            ${isEdit 
+              ? question.keywords ? question.keywords.map((k) => k.name).join(", ") : "" 
+              : ""}" />
         </div>
         <div class="form-group">
           <label for="q-image">Image ${isEdit ? "(leave blank to keep current)" : "(optional)"}</label>
           <input type="file" id="q-image" accept="image/*" />
-          ${isEdit && question.imageUrl ? `<img src="${question.imageUrl}" alt="" style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
+          ${isEdit && question.imageUrl ? `<img src="${question.imageUrl}" alt="" 
+            style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
         </div>
         <button type="submit" class="btn btn-primary">${isEdit ? "Save Changes" : "Create Question"}</button>
       </form>
