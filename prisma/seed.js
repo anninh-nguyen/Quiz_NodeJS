@@ -6,6 +6,7 @@ async function main() {
   console.log('Seeding database...');
 
   // clean database
+  await prisma.like.deleteMany({});
   await prisma.quizResult.deleteMany({});
   await prisma.quizAttempt.deleteMany({});
   await prisma.option.deleteMany({});
@@ -103,6 +104,7 @@ async function main() {
       text: 'What is the correct way to declare a variable in JavaScript?',
       quizId: quiz1.id,
       userId: user2.id,
+      imageUrl: 'https://64.media.tumblr.com/943d43bfccceb91a4e229ea5a6646eec/ad8005ced6743590-31/s1280x1920/6e444bf2e562081f729101f6b4bfd1e8a2b47de5.jpg',
       keywords: {
         connect: [
           { name: 'variable' },
@@ -118,6 +120,7 @@ async function main() {
       text: 'Which of the following is NOT a JavaScript data type?',
       quizId: quiz1.id,
       userId: user2.id,
+      imageUrl: 'https://i.pinimg.com/474x/71/5d/06/715d061852b34ffb207ffc2cd35cd1fc.jpg',
       keywords: {
         connect: [
           { name: 'type' },
@@ -133,6 +136,7 @@ async function main() {
       text: 'What does the === operator do in JavaScript?',
       quizId: quiz1.id,
       userId: user2.id,
+      imageUrl: 'https://images.stockcake.com/public/5/e/3/5e3701ca-65a0-4714-9c76-f1a59aa7ca0e_large/cozy-work-space-stockcake.jpg',
       keywords: {
         connect: [
           { name: 'type' },
@@ -178,7 +182,8 @@ async function main() {
     data: {
       text: 'What is Node.js?',
       quizId: quiz2.id,
-      userId: user2.id, 
+      userId: user2.id,
+      imageUrl: 'https://its-asia.hk/wp-content/uploads/2024/08/222406721_l_normal_none-1-1920x1440.jpg',
       keywords: {
         connect: [
           { name: 'Node' },
@@ -194,6 +199,7 @@ async function main() {
       text: 'Which module is used to create a web server in Node.js?',
       quizId: quiz2.id,
       userId: user2.id,
+      imageUrl: 'https://miro.medium.com/v2/resize:fit:1200/1*meNkllQQfzrFr--qahGu0A.jpeg',
       keywords: {
         connect: [
           { name: 'Node' },
@@ -230,6 +236,7 @@ async function main() {
       text: 'What does HTML stand for?',
       quizId: quiz3.id,
       userId: user2.id,
+      imageUrl: 'https://static.vecteezy.com/system/resources/previews/030/630/208/large_2x/a-modern-office-with-a-view-of-a-city-free-photo.jpg',
       keywords: {
         connect: [
           { name: 'html' },
@@ -243,6 +250,7 @@ async function main() {
       text: 'Which HTTP method is used to retrieve data from a server?',
       quizId: quiz3.id,
       userId: user2.id,
+      imageUrl: 'https://img.freepik.com/premium-photo/modern-office-with-large-windows-view-city-there-is-desk-chair-computer-plant-office_14117-517719.jpg',
       keywords: {
         connect: [
           { name: 'http' },
@@ -270,6 +278,18 @@ async function main() {
       { text: 'PUT', isCorrect: false, questionId: question7.id },
       { text: 'GET', isCorrect: true, questionId: question7.id },
       { text: 'DELETE', isCorrect: false, questionId: question7.id },
+    ],
+  });
+
+  await prisma.like.createMany({
+    data: [
+      { userId: user1.id, questionId: question1.id },
+      { userId: user1.id, questionId: question2.id },
+      { userId: user1.id, questionId: question3.id },
+      { userId: user2.id, questionId: question1.id },
+      { userId: user2.id, questionId: question3.id },
+      { userId: user2.id, questionId: question7.id },
+      { userId: user1.id, questionId: question7.id },
     ],
   });
 

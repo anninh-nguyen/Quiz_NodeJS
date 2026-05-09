@@ -7,4 +7,6 @@ postman
 src/test
 .vscode
 /src/generated/prismasodprisma
-.vscode
+
+public/uploads/*
+!public/uploads/.gitkeep

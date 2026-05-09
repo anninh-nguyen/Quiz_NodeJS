@@ -23,7 +23,7 @@ router.post("/register", async (req, res) => {
         data: { email, password: hashedPassword, name },
     });
     // Generate a token
-    const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: "24h" });
     res.status(201).json({
         message: "User registered successfully",
         token,
@@ -37,8 +37,6 @@ router.post("/login", async (req, res) => {
         return res.status(400).json({ error: "email and password are required" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    console.log("Hashed password for testing:", hashedPassword);
 
     // Find the user
     const user = await prisma.user.findUnique({
