@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: quiz_app
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+    # environment:
+    #   DATABASE_URL: "mysql://root:root@db:3306/quiz_app"
+    #   JWT_SECRET: "your-super-secret-key-change-this"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/public/uploads
+volumes:
+  dbdata:
+  uploads:
