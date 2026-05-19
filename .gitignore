@@ -2,7 +2,6 @@ node_modules/
 .gitignore
 .postman
 postman
-.env
 .DS_Store
 src/test
 .vscode

@@ -1,11 +1,10 @@
 const express = require("express");
-const app = express();
-
-const PORT = process.env.PORT || 3000;
+const app = require("./app");
 
 const authRouter = require("./routes/auth.js");
 const questionsRouter = require('./routes/questions.js');
 const multer = require("multer");
+const { NotFoundError, BadRequestError } = require("./lib/error.js");
 
 const path = require('path');
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -27,18 +26,34 @@ const upload = multer({
 // Middleware to parse JSON bodies (will be useful in later steps)
 app.use(express.json());
 app.use(multer({ storage }).single('image'));
+// app.use(errorHandler);
+const pinoHttp = require("pino-http");
+const logger = require("./lib/logger");
+app.use(pinoHttp({
+  logger,
+  autoLogging: { ignore: (req) => req.url.startsWith("/uploads") },
+}));
 
 app.use("/api/auth", authRouter);
 app.use('/api/questions', questionsRouter);
 
-app.use((req, res) => {
-  res.status(404).json({ error: "Page not found" });
+app.use((req, res, next) => {
+  throw new NotFoundError("Page not found");
 });
+const prisma = require("./lib/prisma");
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+  logger.info({ port: PORT }, "server listening");
 });
+
+async function shutdown() {
+ await prisma.$disconnect();
+ server.close(() => process.exit(0));
+}
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 
 // // Graceful shutdown
 // process.on("SIGINT", async () => {

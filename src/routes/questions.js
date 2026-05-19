@@ -3,12 +3,22 @@ const prisma = require("../lib/prisma");
 const router = express.Router();
 const authenticate = require("../middleware/auth");
 const isOwner = require("../middleware/isOwner");
+const multer = require("multer");
+const { BadRequestError, NotFoundError } = require("../lib/error.js");
+
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError ||
+      err?.message === "Only image files are allowed") {
+    throw new BadRequestError(err.message);
+ }
+ next(err); // pass through to global handler
+});
 
 router.use(authenticate);
 
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError || err?.message === "Only image files are allowed") {
-    return res.status(400).json({ msg: err.message });
+    throw new BadRequestError(err.message);
   }
   next(err);
 });
@@ -88,7 +98,7 @@ router.get("/:questionId", isOwner, async(req, res) => {
   })]);
 
   if (!question) {
-    return res.status(404).json({message: "GET: Question not found"});
+    throw new NotFoundError("Question not found");
   }
   
   return res.json({
@@ -103,7 +113,7 @@ router.post("/:questionId/answer", async (req, res) => {
   const { answered } = req.body;
 
   if (!answered) {
-    return res.status(400).json({ message: "POST: Answer text is required" });
+    throw new BadRequestError("POST: Answer text is required");
   }
 
   const newAnswer = await prisma.quizResult.create({
@@ -126,7 +136,7 @@ router.post("/", async (req, res) => {
   const {text, options, quizId, keywords} = req.body;
 
   if (!text || !options || !quizId) {
-    return res.status(400).json({message: "POST: Required data is missing"});
+    throw new BadRequestError("POST: Required data is missing");
   }
 
   const newQuestion = await Promise.all([prisma.question.create({
@@ -158,11 +168,11 @@ router.put("/:questionId", isOwner, async (req, res) => {
   const {text, options, keywords} = req.body;
 
   if (!questionId){
-    return res.json({message: "PUT: Question Id is missing"});
+    throw new BadRequestError("PUT: Question Id is missing");
   }
 
   if (!text || !options) {
-    return res.status(400).json({message: "PUT: Required data is missing"});
+    throw new BadRequestError("PUT: Required data is missing");
   }
 
   const updatedQuestion = await Promise.all([prisma.question.update({
@@ -187,7 +197,7 @@ router.delete("/:questionId/like", async (req, res) => {
   const questionId = Number(req.params.questionId);
 
   if (!questionId) {
-    return res.status(400).json({ message: "DELETE: Missing question ID" });
+    throw new BadRequestError("DELETE: Missing question ID");
   }
 
   const deletedLike = await prisma.like.deleteMany({
@@ -195,7 +205,7 @@ router.delete("/:questionId/like", async (req, res) => {
   });
 
   if (deletedLike.count === 0) {
-    return res.status(404).json({ message: "Like not found" });
+    throw new NotFoundError("Like not found");
   }
 
   return res.json({ message: "Question unliked" });
@@ -206,11 +216,11 @@ router.delete("/:questionId/like", async (req, res) => {
 router.delete("/:questionId", isOwner, async (req, res) => {
   const questionId = Number (req.params.questionId);
   if (!questionId) {
-    return res.status(401).json({message : "DELETE: Missing question ID"});
+    throw new BadRequestError("DELETE: Missing question ID");
   }
 
   if (questionId === -1) {
-    return res.status(401).json({message : "DELETE: Invalid question ID"});
+    throw new BadRequestError("DELETE: Invalid question ID");
   }
 
   const deletedQuestion = await Promise.all([prisma.question.deleteMany({
