@@ -9,8 +9,8 @@ class UnauthorizedError extends AppError { constructor(m="Unauthorized") { super
 class ForbiddenError extends AppError { constructor(m="Forbidden") { super(m, 403); } }
 class NotFoundError extends AppError { constructor(m="Not found") { super(m, 404); } }
 class ConflictError extends AppError { constructor(m="Conflict") { super(m, 409); } }
-class ServerError extends AppError { constructor(m="Server error") { super(m, 500); } }
+// class ServerError extends AppError { constructor(m="Server error") { super(m, 500); } }
 module.exports = {
  AppError, BadRequestError, UnauthorizedError,
- ForbiddenError, NotFoundError, ConflictError,
+ ForbiddenError, NotFoundError, ConflictError//, ServerError
 }

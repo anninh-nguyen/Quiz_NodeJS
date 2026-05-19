@@ -20,6 +20,6 @@ function errorHandler(err, req, res, next) {
     throw new BadRequestError("Invalid JSON in request body");
  }
  // req.log?.error({ err }, "unhandled error");
- throw new ServerError("Internal server error");
+//  throw new ServerError("Internal server error");
 }
 module.exports = errorHandler;
