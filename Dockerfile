@@ -8,4 +8,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 # RUN npx prisma generate
 # CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm start"]
-CMD ["sh", "-c", "sleep 15 && nnpx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm start"]
+CMD ["sh", "-c", "sleep 15 && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm start"]
