@@ -1,5 +1,6 @@
 // --- State ---
 let isRegisterMode = false;
+let captchaChallenge = null;
 
 // --- Helpers ---
 function getCurrentUserId() {
@@ -25,6 +26,24 @@ function removeToken() {
   localStorage.removeItem(CONFIG.STORAGE_KEY);
 }
 
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 8) + 2;
+  const b = Math.floor(Math.random() * 8) + 2;
+  return {
+    question: `What is ${a} + ${b}?`,
+    answer: String(a + b),
+  };
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function apiFetch(route, options = {}) {
   const token = getToken();
   const isFormData = options.body instanceof FormData;
@@ -47,6 +66,10 @@ function showAuth() {
 }
 
 function renderAuthForm() {
+  if (isRegisterMode) {
+    captchaChallenge = generateCaptcha();
+  }
+
   const fields = isRegisterMode ? CONFIG.FIELDS.REGISTER : CONFIG.FIELDS.LOGIN;
   const title = isRegisterMode ? "Sign Up" : "Log In";
   const switchText = isRegisterMode
@@ -67,6 +90,14 @@ function renderAuthForm() {
           </div>`;
         })
         .join("")}
+      ${isRegisterMode ? `
+        <div class="form-group captcha-group">
+          <label for="captcha">${captchaChallenge.question}</label>
+          <div class="captcha-row">
+            <input type="text" id="captcha" name="captcha" required autocomplete="off" />
+            <button type="button" id="refresh-captcha" class="btn btn-secondary">Refresh</button>
+          </div>
+        </div>` : ""}
       <button type="submit">${title}</button>
     </form>
     <p class="switch-text">${switchText}</p>
@@ -75,6 +106,13 @@ function renderAuthForm() {
 
   document.getElementById("auth-section").innerHTML = formHTML;
   document.getElementById("auth-form").addEventListener("submit", handleAuth);
+  if (isRegisterMode) {
+    document.getElementById("refresh-captcha").addEventListener("click", (e) => {
+      e.preventDefault();
+      captchaChallenge = generateCaptcha();
+      renderAuthForm();
+    });
+  }
   document.getElementById("switch-mode").addEventListener("click", (e) => {
     e.preventDefault();
     isRegisterMode = !isRegisterMode;
@@ -94,6 +132,15 @@ async function handleAuth(e) {
   fields.forEach((f) => {
     body[f] = document.getElementById(f).value;
   });
+
+  if (isRegisterMode) {
+    const captchaValue = document.getElementById("captcha").value.trim();
+    if (captchaValue !== captchaChallenge?.answer) {
+      errorEl.textContent = "Captcha answer is incorrect.";
+      return;
+    }
+    body.captcha = captchaValue;
+  }
 
   try {
     const data = await apiFetch(route, {
@@ -144,6 +191,8 @@ async function loadQuestions(keyword = "", page = 1) {
       <div class="toolbar">
         <button class="btn btn-primary" id="new-question-btn">+ New Question</button>
         <div class="search-bar">
+          <input type="option" id="difficulty-filter" style="margin-right:0.5rem;">
+          
           <input type="text" id="keyword-input" placeholder="Search by keyword..." value="${keyword}" />
           <button class="btn btn-search" id="search-btn">Search</button>
           ${keyword ? `<button class="btn btn-clear" id="clear-btn">Clear</button>` : ""}
@@ -160,6 +209,7 @@ async function loadQuestions(keyword = "", page = 1) {
               <a href="#" class="question-link" data-id="${q.id}">${q.text}</a>
               ${q[CONFIG.API_FIELDS.SOLVED] ? `<span class="badge-solved">Solved</span>` : ""}
             </h3>
+            <p class="question-difficulty">Difficulty: ${q.difficulty || "Not specified"}</p>
             ${
               q.keywords && q.keywords.length
                 ? `<div class="question-keywords">${q.keywords.map((k) => `<span class="keyword">${k.name}</span>`).join("")}</div>`
@@ -170,6 +220,7 @@ async function loadQuestions(keyword = "", page = 1) {
                 <button class="btn btn-play" data-id="${q.id}">Answer</button>
                 <a href="#" class="read-more" data-id="${q.id}">See answer</a>
               </span>
+
               ${
                 q.userId === currentUserId
                   ? `<span class="owner-actions">
@@ -257,6 +308,7 @@ async function loadQuestionDetail(qId) {
       <article class="question-card question-detail">
         <h3>${q.text} ${q[CONFIG.API_FIELDS.SOLVED] ? `<span class="badge-solved">Solved</span>` : ""}</h3>
         <p class="question-meta">by ${q.user.name || "Unknown"}</p>
+        <p class="question-difficulty">Difficulty: ${q.difficulty || "Not specified"}</p>
         ${q.imageUrl ? `<img class="question-image" src="${q.imageUrl}" alt="">` : ""}
         <p class="question-answer">${q.answer}</p>
         ${
@@ -293,6 +345,7 @@ async function showQuestionForm(qId) {
   const container = document.getElementById("questions-container");
   const isEdit = !!qId;
   let q = { question: "", answer: "", keywords: [] };
+  let generatedData = { question: "", difficulty: "", keywords: [], options: [] };
 
   if (isEdit) {
     try {
@@ -301,8 +354,77 @@ async function showQuestionForm(qId) {
       container.innerHTML = `<p class="error">${err.message}</p>`;
       return;
     }
+  } else {
+    try {
+      const geminiResult = await apiFetch(CONFIG.ROUTES.GEMINI, {
+        method: "POST",
+        body: JSON.stringify({
+          prompt: `Generate a quiz question in web development with 4 answer options, 
+                  the correct answer is the first option, some related keywords, 
+                  and a difficulty indicator. 
+                  The result is in JSON format`,
+        }),
+      });
+
+      let payload = geminiResult.answer ?? geminiResult.success ?? geminiResult;
+      console.log("Raw Gemini response:", payload.trim);
+      // sample payload
+      // {
+      //   "success": true,
+      //   "answer": "```json\n
+      //            {\n  \"question\": \"Which of the following client-side storage mechanisms allows web applications to store key-value pairs persistently with no expiration date across browser sessions, making data available even after the browser is closed and reopened?\",
+      //             \n  \"options\": [\n    \"localStorage\",\n    \"sessionStorage\",\n    \"Cookies\",\n    \"IndexedDB\"\n  ],
+      //             \n  \"correctAnswerIndex\": 0,
+      //             \n  \"keywords\": [\n    \"Web Storage API\",\n    \"localStorage\",\n    \"client-side storage\",\n    \"JavaScript\",\n    \"persistence\",\n    \"key-value store\"\n  ],
+      //             \n  \"difficulty\": \"Medium\"\n}\n```"
+      // }
+      if (typeof payload === "string") {
+        payload = JSON.parse(payload);
+      }
+
+      generatedData = {
+        question: payload.question || "",
+        difficulty: payload.difficulty || "",
+        keywords: Array.isArray(payload.keywords) ? payload.keywords : [],
+        options: Array.isArray(payload.options) ? payload.options : [],
+      };
+      console.log("Generated question data from Gemini:", generatedData);
+    } catch (err) {
+      console.warn("Gemini generation failed:", err);
+    }
   }
+
   const question = q.data;
+  const formValues = {
+    text: isEdit ? question.text : generatedData.question,
+    difficulty: isEdit ? question.difficulty : generatedData.difficulty,
+    keywords: isEdit ? (question.keywords ? question.keywords.map((k) => k.name) : []) : generatedData.keywords,
+    options: isEdit ? question.options || [] : generatedData.options,
+    answer: isEdit ? question.answer : generatedData.options[0] || "",
+    imageUrl: isEdit ? question.imageUrl : null,
+  };
+
+  const optionsHtml = formValues.options.length
+    ? formValues.options
+        .map((option, idx) => {
+          if (isEdit) {
+            const text = option.text || "";
+            const optionId = option.id || idx;
+            const checked = text === formValues.answer ? " checked" : "";
+            return `
+                <label class="option-item" for="play-answer-${optionId}" style="width:95%;">
+                  <input id="play-answer-${optionId}" name="play-answer" type="radio" value="${escapeHtml(text)}" style="width:5%;"${checked} /> ${escapeHtml(text)}
+                </label>`;
+          }
+          return `
+                <label class="option-item" for="play-answer-${idx}" style="width:95%;">
+                  <input id="play-answer-${idx}" name="play-answer" type="radio" value="${escapeHtml(option)}" style="width:5%;"${idx === 0 ? " checked" : ""} disabled /> ${escapeHtml(option)}
+                </label>`;
+        })
+        .join("")
+    : `<p class="muted">No options available yet.</p>`;
+
+  const selectedDifficulty = String(formValues.difficulty || "").toLowerCase();
 
   container.innerHTML = `
     <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
@@ -311,36 +433,30 @@ async function showQuestionForm(qId) {
       <form id="question-form" enctype="multipart/form-data">
         <div class="form-group">
           <label for="q-question">Question</label>
-          <input type="text" id="q-question" value="${isEdit ? question.text : ""}" required />
+          <input type="text" id="q-question" value="${escapeHtml(formValues.text)}" required />
+          <input type="hidden" id="q-answer" value="${escapeHtml(formValues.answer)}" />
         </div>
         <div class="form-group">
           <div class="options-list">
-            ${isEdit 
-              ? question.options.map((option) => `
-                <label class="option-item" for="play-answer-${option.id}"
-                  name="play-answer" value="${option.id}" required style="width:95%;">
-                  <input id="play-answer-${option.id}" type="radio" style="width:5%;" /> ${option.text}
-                </label>`).join("") 
-              : `
-                <input id="q-answer-1-text" type="text" placeholder="Option 1 text" style="width:90%;margin-left:0.5rem;" required />
-                <input id="q-answer-2-text" type="text" placeholder="Option 2 text" style="width:90%;margin-left:0.5rem;" required />
-                <input id="q-answer-3-text" type="text" placeholder="Option 3 text" style="width:90%;margin-left:0.5rem;" required />
-                <input id="q-answer-4-text" type="text" placeholder="Option 4 text" style="width:90%;margin-left:0.5rem;" required />
-            `}
+            ${optionsHtml}
           </div>
         </div>
         <div class="form-group">
+          <label for="q-difficulty">Difficulty</label>
+          <select id="q-difficulty">
+            <option value="easy"${selectedDifficulty === "easy" ? " selected" : ""}>Easy</option>
+            <option value="medium"${selectedDifficulty === "medium" ? " selected" : ""}>Medium</option>
+            <option value="hard"${selectedDifficulty === "hard" ? " selected" : ""}>Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="q-keywords">Keywords (comma-separated)</label>
-          <input type="text" id="q-keywords" value="
-            ${isEdit 
-              ? question.keywords ? question.keywords.map((k) => k.name).join(", ") : "" 
-              : ""}" />
+          <input type="text" id="q-keywords" value="${escapeHtml(formValues.keywords.join(", "))}" />
         </div>
         <div class="form-group">
           <label for="q-image">Image ${isEdit ? "(leave blank to keep current)" : "(optional)"}</label>
           <input type="file" id="q-image" accept="image/*" />
-          ${isEdit && question.imageUrl ? `<img src="${question.imageUrl}" alt="" 
-            style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
+          ${formValues.imageUrl ? `<img src="${escapeHtml(formValues.imageUrl)}" alt="" style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
         </div>
         <button type="submit" class="btn btn-primary">${isEdit ? "Save Changes" : "Create Question"}</button>
       </form>
@@ -361,6 +477,7 @@ async function showQuestionForm(qId) {
     body.append("question", document.getElementById("q-question").value);
     body.append("answer", document.getElementById("q-answer").value);
     body.append("keywords", document.getElementById("q-keywords").value);
+    body.append("difficulty", document.getElementById("q-difficulty").value);
     const imageFile = document.getElementById("q-image").files[0];
     if (imageFile) body.append("image", imageFile);
 
@@ -391,6 +508,7 @@ async function playQuestion(qId) {
       <div class="question-form-wrapper" style="text-align:center">
         <div class="play-question-text">${question.text}</div>
         ${question.imageUrl ? `<img class="question-image" src="${question.imageUrl}" alt="" style="margin:0 auto 1rem">` : ""}
+        <p class="question-difficulty" style="margin-bottom:1rem">Difficulty: ${question.difficulty || "Not specified"}</p>
         ${
           question.keywords && question.keywords.length
             ? `<div class="question-keywords" style="justify-content:center;margin-bottom:1.5rem">

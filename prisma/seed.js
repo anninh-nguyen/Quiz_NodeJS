@@ -105,6 +105,7 @@ async function main() {
       quizId: quiz1.id,
       userId: user2.id,
       imageUrl: 'https://64.media.tumblr.com/943d43bfccceb91a4e229ea5a6646eec/ad8005ced6743590-31/s1280x1920/6e444bf2e562081f729101f6b4bfd1e8a2b47de5.jpg',
+      difficulty: 'easy',
       keywords: {
         connect: [
           { name: 'variable' },
@@ -121,6 +122,7 @@ async function main() {
       quizId: quiz1.id,
       userId: user2.id,
       imageUrl: 'https://i.pinimg.com/474x/71/5d/06/715d061852b34ffb207ffc2cd35cd1fc.jpg',
+      difficulty: 'medium',
       keywords: {
         connect: [
           { name: 'type' },
@@ -137,6 +139,7 @@ async function main() {
       quizId: quiz1.id,
       userId: user2.id,
       imageUrl: 'https://images.stockcake.com/public/5/e/3/5e3701ca-65a0-4714-9c76-f1a59aa7ca0e_large/cozy-work-space-stockcake.jpg',
+      difficulty: 'hard',
       keywords: {
         connect: [
           { name: 'type' },
@@ -184,6 +187,7 @@ async function main() {
       quizId: quiz2.id,
       userId: user2.id,
       imageUrl: 'https://its-asia.hk/wp-content/uploads/2024/08/222406721_l_normal_none-1-1920x1440.jpg',
+      difficulty: 'medium',
       keywords: {
         connect: [
           { name: 'Node' },
@@ -200,6 +204,7 @@ async function main() {
       quizId: quiz2.id,
       userId: user2.id,
       imageUrl: 'https://miro.medium.com/v2/resize:fit:1200/1*meNkllQQfzrFr--qahGu0A.jpeg',
+      difficulty: 'medium',
       keywords: {
         connect: [
           { name: 'Node' },
@@ -237,6 +242,7 @@ async function main() {
       quizId: quiz3.id,
       userId: user2.id,
       imageUrl: 'https://static.vecteezy.com/system/resources/previews/030/630/208/large_2x/a-modern-office-with-a-view-of-a-city-free-photo.jpg',
+      difficulty: 'medium',
       keywords: {
         connect: [
           { name: 'html' },
@@ -251,6 +257,7 @@ async function main() {
       quizId: quiz3.id,
       userId: user2.id,
       imageUrl: 'https://img.freepik.com/premium-photo/modern-office-with-large-windows-view-city-there-is-desk-chair-computer-plant-office_14117-517719.jpg',
+      difficulty: 'medium',
       keywords: {
         connect: [
           { name: 'http' },

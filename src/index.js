@@ -1,8 +1,13 @@
 const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+dotenv.config();
 const app = require("./app");
+app.use(cors());
 
 const authRouter = require("./routes/auth.js");
 const questionsRouter = require('./routes/questions.js');
+const geminiRouter = require('./routes/gemini.js');
 const multer = require("multer");
 const { NotFoundError, BadRequestError } = require("./lib/error.js");
 
@@ -34,8 +39,9 @@ app.use(pinoHttp({
   autoLogging: { ignore: (req) => req.url.startsWith("/uploads") },
 }));
 
-app.use("/api/auth", authRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/questions', questionsRouter);
+app.use('/api/gemini', geminiRouter);
 
 app.use((req, res, next) => {
   throw new NotFoundError("Page not found");
@@ -55,12 +61,12 @@ async function shutdown() {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-// // Graceful shutdown
-// process.on("SIGINT", async () => {
-//  await prisma.$disconnect();
-//  process.exit(0);
-// });
-// process.on("SIGTERM", async () => {
-//  await prisma.$disconnect();
-//  process.exit(0);
-// });
+// Graceful shutdown
+process.on("SIGINT", async () => {
+ await prisma.$disconnect();
+ process.exit(0);
+});
+process.on("SIGTERM", async () => {
+ await prisma.$disconnect();
+ process.exit(0);
+});

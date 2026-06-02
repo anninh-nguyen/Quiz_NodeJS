@@ -4,6 +4,7 @@ const CONFIG = {
     LOGIN: "/api/auth/login",
     REGISTER: "/api/auth/register",
     QUESTIONS: "/api/questions",
+    GEMINI: "/api/gemini/chat",
   },
   FIELDS: {
     LOGIN: ["email", "password"],

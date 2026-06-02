@@ -100,7 +100,7 @@ router.get("/:questionId", isOwner, async(req, res) => {
   if (!question) {
     throw new NotFoundError("Question not found");
   }
-  
+
   return res.json({
     data :question[0],
   });
@@ -133,7 +133,7 @@ router.post("/:questionId/answer", async (req, res) => {
 // POST
 router.post("/", async (req, res) => {
 
-  const {text, options, quizId, keywords} = req.body;
+  const {text, options, difficulty, quizId, keywords} = req.body;
 
   if (!text || !options || !quizId) {
     throw new BadRequestError("POST: Required data is missing");
@@ -143,6 +143,7 @@ router.post("/", async (req, res) => {
     data: {
       text,
       options: {create: options},
+      difficulty,
       quiz: {connect: {id: Number(quizId)}},
       keywords: keywords ? {connect: keywords.map(kw => ({name: kw}))} : undefined,
     },
@@ -165,7 +166,7 @@ router.post("/", async (req, res) => {
 // PUT
 router.put("/:questionId", isOwner, async (req, res) => {
   const questionId = Number(req.params.questionId);
-  const {text, options, keywords} = req.body;
+  const {text, options, difficulty, keywords} = req.body;
 
   if (!questionId){
     throw new BadRequestError("PUT: Question Id is missing");
@@ -180,6 +181,7 @@ router.put("/:questionId", isOwner, async (req, res) => {
     data: {
       text: text,
       options: {deleteMany: {}, create: options,},
+      difficulty: difficulty,
       keywords: keywords ? {connect: keywords.map(kw => ({name: kw}))} : undefined,
     },
     include: {keywords: true, options: true, user: true, 

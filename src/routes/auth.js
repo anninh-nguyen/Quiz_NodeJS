@@ -23,6 +23,17 @@ router.post("/register", async (req, res) => {
     const user = await prisma.user.create({
         data: { email, password: hashedPassword, name },
     });
+    
+    console.log("User created:", user);
+    // send confirmation email to the user
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Contact Form",
+        text: "Hello from WhatTheQuiz! Your account has been successfully created. Welcome to our quiz community!",
+    });
+    console.log("Confirmation email sent to:", email);
+
     // Generate a token
     const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: "24h" });
     res.status(201).json({
