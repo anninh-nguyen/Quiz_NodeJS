@@ -46,43 +46,39 @@ function parseKeywords(keywords) {
   return [];
 }
 
-// List questions filtered by keyword
-// GET /api/questions?keyword=http
+// List questions filtered by keyword and difficulty
+// GET /api/questions?keyword=http&difficulty=2
 router.get("/", async (req, res) => {
-  if ('keyword' in req.query) {
-    const {keyword} = req.query;
-    if (!keyword) { 
-      return res.json({message : "GET: Keyword is missing which is required"});
-    }
+  const { keyword, difficulty } = req.query;
 
-    const where = keyword 
-      ? {keywords : {some : {name: keyword}}}
-      : {};
-    const filteredQuestions = await Promise.all([prisma.question.findMany({
-      where,
-      include: {keywords: true, options: true, user: true, 
-        likes: { where: { userId: req.user.userId }, take: 1 },
-        _count: { select: { likes: true } },},
-      orderBy: {id: "asc"}
-    })]);
-    return res.json( {
-      data: filteredQuestions,
-    });
+  if ('keyword' in req.query && !keyword) {
+    return res.json({ message: "GET: Keyword is missing which is required" });
   }
-  else {
-    // List all questions
-    const allQuestions = await Promise.all([prisma.question.findMany({
-      include: {
-        keywords: true, options: true, user: true, 
-        likes: { where: { userId: req.user.userId }, take: 1 },
-        _count: { select: { likes: true } },
-      },
-      orderBy: {id: "asc"}
-    })]);
-    return res.json({
-      data: allQuestions
-    });
+
+  const where = {};
+  if (keyword) where.keywords = { some: { name: keyword } };
+  if (typeof difficulty !== 'undefined' && difficulty !== '') {
+    const diffNum = Number(difficulty);
+    if (!Number.isNaN(diffNum)) where.difficulty = diffNum;
+    else where.difficulty = difficulty;
   }
+
+  console.log("GET /api/questions with filters:", { keyword, difficulty, where });
+
+  // List (filtered) questions
+  const questions = await Promise.all([prisma.question.findMany({
+    where,
+    include: {
+      keywords: true,
+      options: true,
+      user: true,
+      likes: { where: { userId: req.user.userId }, take: 1 },
+      _count: { select: { likes: true } },
+    },
+    orderBy: { id: "asc" }
+  })]);
+
+  return res.json({ data: questions });
 });
 
 // Show a specific question by ID

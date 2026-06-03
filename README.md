@@ -5,7 +5,8 @@
 The quiz application is a mini game allow user to manage quiz on web development knowledge. It has basic use authetication, authorization. It also generate quizzes using Gemini API.
 
 ## Note
- - The quiz app deployed on Railway with MySQL backed as a database management layer
+ - This is just a student project so many things were finished partially, main point was understanding web programming theories.
+ - The quiz app deployed on Railway with MySQL backed as a database management layer. This MySQL service on Railway work unstablely.
  - Quiz generator is based on Gemini API which has limitation so it may get error when exceed API's quota
 
 ## Live Site

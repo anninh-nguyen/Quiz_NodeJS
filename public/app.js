@@ -162,13 +162,14 @@ async function showApp() {
   await loadQuestions();
 }
 
-async function loadQuestions(keyword = "", page = 1) {  
+async function loadQuestions(keyword = "", difficulty = "", page = 1) {  
   const container = document.getElementById("questions-container");
   container.innerHTML = '<p class="loading">Loading questions...</p>';
 
   try {
     const params = new URLSearchParams({ page, limit: CONFIG.QUESTIONS_PER_PAGE });
     if (keyword) params.set("keyword", keyword);
+    if (difficulty) params.set("difficulty", difficulty);
     const result = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}?${params}`);
     const { data: questions, 
             total = questions[0]?.length,
@@ -191,7 +192,12 @@ async function loadQuestions(keyword = "", page = 1) {
       <div class="toolbar">
         <button class="btn btn-primary" id="new-question-btn">+ New Question</button>
         <div class="search-bar">
-          <input type="text" id="difficulty-filter" placeholder="Search by difficulty..." style="margin-right:0.5rem;">
+          <select class="dropdown-toggle" id="difficulty-filter">
+            <option value=""></option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
           
           <input type="text" id="keyword-input" placeholder="Search by keyword..." value="${keyword}" />
           <button class="btn btn-search" id="search-btn">Search</button>
@@ -249,21 +255,21 @@ async function loadQuestions(keyword = "", page = 1) {
     document.getElementById("new-question-btn").addEventListener("click", () => showQuestionForm());
 
     document.getElementById("search-btn").addEventListener("click", () => {
-      loadQuestions(document.getElementById("keyword-input").value.trim(), 1);
+      loadQuestions(document.getElementById("keyword-input").value.trim(), document.getElementById("difficulty-filter").value.trim(), 1);
     });
 
     document.getElementById("keyword-input").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") loadQuestions(e.target.value.trim(), 1);
+      if (e.key === "Enter") loadQuestions(e.target.value.trim(), document.getElementById("difficulty-filter").value.trim(), 1);
     });
 
     const clearBtn = document.getElementById("clear-btn");
     if (clearBtn) clearBtn.addEventListener("click", () => loadQuestions());
 
     const prevBtn = document.getElementById("prev-btn");
-    if (prevBtn) prevBtn.addEventListener("click", () => loadQuestions(keyword, page - 1));
+    if (prevBtn) prevBtn.addEventListener("click", () => loadQuestions(keyword, difficulty, page - 1));
 
     const nextBtn = document.getElementById("next-btn");
-    if (nextBtn) nextBtn.addEventListener("click", () => loadQuestions(keyword, page + 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => loadQuestions(keyword, difficulty, page + 1));
 
     container.querySelectorAll(".question-link, .read-more").forEach((el) => {
       el.addEventListener("click", (e) => {
@@ -437,7 +443,7 @@ async function showQuestionForm(qId) {
         </div>
         <div class="form-group">
           <label for="q-difficulty">Difficulty</label>
-          <select id="q-difficulty">
+          <select class="dropdown-toggle" id="q-difficulty">
             <option value="easy"${selectedDifficulty === "easy" ? " selected" : ""}>Easy</option>
             <option value="medium"${selectedDifficulty === "moderate" ? " selected" : ""}>Medium</option>
             <option value="hard"${selectedDifficulty === "hard" ? " selected" : ""}>Hard</option>
