@@ -191,7 +191,7 @@ async function loadQuestions(keyword = "", page = 1) {
       <div class="toolbar">
         <button class="btn btn-primary" id="new-question-btn">+ New Question</button>
         <div class="search-bar">
-          <input type="option" id="difficulty-filter" style="margin-right:0.5rem;">
+          <input type="text" id="difficulty-filter" placeholder="Search by difficulty..." style="margin-right:0.5rem;">
           
           <input type="text" id="keyword-input" placeholder="Search by keyword..." value="${keyword}" />
           <button class="btn btn-search" id="search-btn">Search</button>
@@ -361,13 +361,13 @@ async function showQuestionForm(qId) {
         body: JSON.stringify({
           prompt: `Generate a quiz question in web development with 4 answer options, 
                   the correct answer is the first option, some related keywords, 
-                  and a difficulty indicator. 
+                  and a difficulty level with three values are Hard, Moderate and Easy. 
                   The result is in JSON format`,
         }),
       });
 
-      let payload = geminiResult.answer ?? geminiResult.success ?? geminiResult;
-      console.log("Raw Gemini response:", payload.trim);
+      let payload = geminiResult.answer.substring(geminiResult.answer.indexOf("```json") + 7, 
+                                                  geminiResult.answer.lastIndexOf("```"));
       // sample payload
       // {
       //   "success": true,
@@ -388,7 +388,6 @@ async function showQuestionForm(qId) {
         keywords: Array.isArray(payload.keywords) ? payload.keywords : [],
         options: Array.isArray(payload.options) ? payload.options : [],
       };
-      console.log("Generated question data from Gemini:", generatedData);
     } catch (err) {
       console.warn("Gemini generation failed:", err);
     }
@@ -411,15 +410,10 @@ async function showQuestionForm(qId) {
             const text = option.text || "";
             const optionId = option.id || idx;
             const checked = text === formValues.answer ? " checked" : "";
-            return `
-                <label class="option-item" for="play-answer-${optionId}" style="width:95%;">
-                  <input id="play-answer-${optionId}" name="play-answer" type="radio" value="${escapeHtml(text)}" style="width:5%;"${checked} /> ${escapeHtml(text)}
-                </label>`;
+            return `<input id="play-answer-${optionId}" name="play-answer" type="text" value="${escapeHtml(text)}" style="width:95%;"/><br>`;
           }
-          return `
-                <label class="option-item" for="play-answer-${idx}" style="width:95%;">
-                  <input id="play-answer-${idx}" name="play-answer" type="radio" value="${escapeHtml(option)}" style="width:5%;"${idx === 0 ? " checked" : ""} disabled /> ${escapeHtml(option)}
-                </label>`;
+          return `<input id="play-answer-${idx}" name="play-answer" type="text" value="${escapeHtml(option)}" style="width:95%;"${idx === 0 ? " checked" : ""} /><br>`;
+                
         })
         .join("")
     : `<p class="muted">No options available yet.</p>`;
@@ -445,7 +439,7 @@ async function showQuestionForm(qId) {
           <label for="q-difficulty">Difficulty</label>
           <select id="q-difficulty">
             <option value="easy"${selectedDifficulty === "easy" ? " selected" : ""}>Easy</option>
-            <option value="medium"${selectedDifficulty === "medium" ? " selected" : ""}>Medium</option>
+            <option value="medium"${selectedDifficulty === "moderate" ? " selected" : ""}>Medium</option>
             <option value="hard"${selectedDifficulty === "hard" ? " selected" : ""}>Hard</option>
           </select>
         </div>
